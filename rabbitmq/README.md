@@ -99,3 +99,9 @@ https://gist.github.com/fernandoaleman/fe34e83781f222dfd8533b36a52dddcc
 ```
 # pip install pika -i https://pypi.tuna.tsinghua.edu.cn/simple/
 ```
+
+详细使用参考官方：
+
+https://www.rabbitmq.com/tutorials/tutorial-one-python.html
+
+https://pika.readthedocs.io/en/stable/intro.html
