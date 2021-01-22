@@ -93,15 +93,43 @@ http://Your_Server_IP:15672
 https://gist.github.com/fernandoaleman/fe34e83781f222dfd8533b36a52dddcc
 
 
-# python 关于rabbitmq的模块安装
+# python关于rabbitmq的模块安装和使用
 
 ## 用pip命令安装rabbitmq的模块
 ```
 # pip install pika -i https://pypi.tuna.tsinghua.edu.cn/simple/
 ```
 
-详细使用参考官方：
+## 实例使用
+本项目中该目录下已经写好了一个生产者类和一个消费者类。
+* 消费者类会持续消费一个队列中的消息，如果没有消息则等待，直到有消息到来则继续消费。
+* 生产者运行一次会向队列发送一个消息。
+
+###使用方法：
+
+启动消费者类Consumer.py
+```
+# python Consumer.py
+ [*] Waiting for messages. To exit press CTRL+C
+```
+启动生产者类Producer.py
+```
+# python Producer.py
+ [x] Sent 'Hello RabbitMQ!'
+#
+```
+观察消费者类中出现消息消费
+```
+ [x] MsgConsumer Received b'Hello RabbitMQ!'
+Can handle b'Hello RabbitMQ!' here.
+```
+
+
+———
+
+rabbitmq的python模块pika详细使用参考官方：
 
 https://www.rabbitmq.com/tutorials/tutorial-one-python.html
 
 https://pika.readthedocs.io/en/stable/intro.html
+
