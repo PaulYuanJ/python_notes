@@ -6,7 +6,7 @@
 @contact: yuanjian0375@163.com
 @file: Consumer.py
 @created_time: 1/22/2021 10:22 PM
-@updated_time: 
+@updated_time:
 @desc: Just for fun :)
 '''
 
@@ -23,16 +23,22 @@ class MsgConsumer(object):
 
         self.channel = self.connection.channel()
 
+        self.channel.exchange_declare(exchange='broadcast', exchange_type='fanout')
+
     def do_something(self, msg):
         print(f"Can handle {msg} here.")
 
-    def consume_msg(self, queue_name):
+    def consume_msg(self):
+
+        result = self.channel.queue_declare(queue="", exclusive=True)
+        queue_name = result.method.queue
+        self.channel.queue_bind(exchange='broadcast', queue=queue_name)
 
         def callback(ch, method, properties, body):
             print(" [x] %s Received %r" % (self.__class__.__name__,body))
             self.do_something(body)
 
-        self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+        self.channel.basic_consume(queue="", on_message_callback=callback, auto_ack=False)
         print(' [*] Waiting for messages. To exit press CTRL+C')
         self.channel.start_consuming()
 
@@ -41,12 +47,8 @@ class MsgConsumer(object):
             f" will simulate message consumer."
 
     def main_loop(self):
-        queue_name = 'my_first_queue'
-
-        self.channel.queue_declare(queue=queue_name)
-
         try:
-            self.consume_msg(queue_name)
+            self.consume_msg()
         except KeyboardInterrupt:
             print('Interrupted')
             try:
@@ -54,6 +56,8 @@ class MsgConsumer(object):
             except SystemExit:
                 os._exit(0)
 
+
 if __name__ == '__main__':
     a = MsgConsumer()
     a.main_loop()
+
