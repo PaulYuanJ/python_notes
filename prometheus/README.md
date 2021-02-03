@@ -1,0 +1,1 @@
+# 在Vbox环境的kubernetes下安装了一套监控系统
