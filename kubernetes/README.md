@@ -27,7 +27,7 @@
 # export KUBECONFIG=/etc/kubernetes/admin.conf
 ```
 
-## 在其他的工作节点执行命令，使接入集群, 请根据实际情况替换参数中的所有token和
+## 在其他的工作节点执行命令，使接入集群, 请根据实际情况替换参数中的所有token
 ```
 # kubeadm join 192.168.56.103:6443 --token 5uut43.ktn8luxztoqg2jcr discovery-token-ca-cert-hash sha256:9ea8dde3ef369c0447d579e0fed67e763b5758bf028eeda19a940c7e094f7792 
 ```

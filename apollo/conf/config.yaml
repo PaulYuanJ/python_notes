@@ -1,0 +1,10 @@
+apollo:
+  url: http://XX.XX.XX.XX:8070
+
+mysql:
+  host: XX.XX.XX.XX
+  port: 13306
+  user: root
+  password: ""
+  database: ApolloConfigDB
+  charset: utf8
