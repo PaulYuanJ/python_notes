@@ -33,10 +33,8 @@ apollo_listener_sendwehook_s_created{appid="NON1001",cluster="default",namespace
 # HELP apollo_listener_sendwehook_o_total other
 # TYPE apollo_listener_sendwehook_o_total counter
 apollo_listener_sendwehook_o_total{appid="NON1001",cluster="default",namespace="NONconfiguration_items"} 1.0
-apollo_listener_sendwehook_o_total{appid="NON1001",cluster="default",namespace="application"} 1.0
 # HELP apollo_listener_sendwehook_o_created other
 # TYPE apollo_listener_sendwehook_o_created gauge
 apollo_listener_sendwehook_o_created{appid="NON1001",cluster="default",namespace="NONconfiguration_items"} 1.6137409727475553e+09
-apollo_listener_sendwehook_o_created{appid="NON1001",cluster="default",namespace="application"} 1.613741002862258e+09
 
  ```

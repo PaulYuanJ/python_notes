@@ -107,7 +107,7 @@ class MysqlClient(object):
                             appid=appid,
                             cluster=cluster,
                             namespace=namespace).inc()
-
+            break
         else:
             prometheus_metric_sendwehook_o.labels(
                     appid=appid,
