@@ -1,0 +1,26 @@
+apollo:
+  url: http://XX.XX.XX.XX:8070
+
+mysql:
+  host: XX.XX.XX.XX
+  port: 13306
+  user: root
+  password: "XXXXXX"
+  database: ApolloConfigDB
+  charset: utf8
+
+receiver:
+  - match:
+      AppId: NON1001
+      ClusterName: default
+      NamespaceName: application
+    web_hook:
+      - url: http://127.0.0.1:9898/consumer
+        target: /opt/prometheus/sd_config/http_exporter/default.json
+  - match:
+      AppId: NON1001
+      ClusterName: default
+      NamespaceName: python
+    web_hook:
+      - url: http://127.0.0.2:9898/consumer
+        target: /opt/prometheus/sd_config/python_exporter/default.json
