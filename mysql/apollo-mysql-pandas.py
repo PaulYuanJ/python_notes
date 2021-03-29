@@ -59,7 +59,9 @@ if __name__ == '__main__':
                 if cache != None:
                     for result in \
                             mc.query(f'select AppId,ClusterName,NamespaceName,Configurations from ApolloConfigDB.Release where ApolloConfigDB.Release.id > {cache};'):
-                        print(result)
+                        for row in result.iterrows():
+
+                            print(row[1].to_dict())
                 else:
                     print(release_count)
                     print(next(mc.query('desc ApolloConfigDB.Release;')))
