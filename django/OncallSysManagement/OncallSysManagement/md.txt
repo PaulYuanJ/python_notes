@@ -1,0 +1,416 @@
+>微信公众号：**[颜家大少](#jump_10)**
+关注可了解更多的教程及排版技巧。问题或建议，请公众号留言;
+**[如果你觉得Md2All对你有帮助，欢迎赞赏](#jump_20)[^1]**
+
+### 写在前面
+前面我们介绍了django项目的结构以及gitlab CI/CD模式开发，本文结合前面的部分，进行DevOps的快捷开发、测试、部署。
+全文默认已经部署好了CI/CD环境。
+开发环境信息：
+* 操作系统：Windows 10
+* IDE环境：jupyter
+* Python解释器: python 3.7.5
+* django版本：3.2.5
+
+为了方便理解，本文介绍如何建立一个`OnCall管理系统`，sqllite3做为DB，实现对OnCall人员的CRUD操作，结构上会做成前后端分离的2个服务，后端服务提供restful api数据接口，前端使用`bootstraptable`。
+
+虽然现在有很多主流的IDE都可以直接创建django项目，但是通过命令创建可以更好的让我们理解django的项目结构。
+
+### 环境配置
+```powershell
+$ pip install django
+$ python
+>>> import django
+>>> django.get_version()
+3.2.5
+```
+
+### 创建django项目后端
+
+## 初始化django项目
+```powershell
+$ django-admin.py startproject OncallSysManagement
+```
+创建好的django项目目录结构如下：
+```
+└─OncallSysManagement
+    │  manage.py
+    │
+    └─OncallSysManagement
+            asgi.py
+            settings.py
+            urls.py
+            wsgi.py
+            __init__.py
+```
+为方便扩充新功能，也为了更好的模块化管理，我们手工建立一个apps的目录专门用于模块的开发和管理。
+```
+└─OncallSysManagement
+    │  manage.py
+    │
+    ├─apps
+    └─OncallSysManagement
+            asgi.py
+            settings.py
+            urls.py
+            wsgi.py
+            __init__.py
+```
+接下来，我们在apps目录下添加我们的模块
+```powershell
+$ python manage.py startapp oncall_department
+```
+新的目录结构如下：
+```powershell
+└─OncallSysManagement
+    │  manage.py
+    │
+    ├─apps
+    ├─OncallSysManagement
+    │      asgi.py
+    │      settings.py
+    │      urls.py
+    │      wsgi.py
+    │      __init__.py
+    │
+    └─oncall_department
+        │  admin.py
+        │  apps.py
+        │  models.py
+        │  tests.py
+        │  views.py
+        │  __init__.py
+        │
+        └─migrations
+                __init__.py
+```
+再创建一个模块
+```powershell
+$ python manage.py startapp oncall_user
+```
+并把他们从windows的资源管理器中手工剪切新的模块到apps目录下:
+```powershell
+└─OncallSysManagement
+    │  manage.py
+    │
+    ├─apps
+    │  ├─oncall_department
+    │  │  │  admin.py
+    │  │  │  apps.py
+    │  │  │  models.py
+    │  │  │  tests.py
+    │  │  │  views.py
+    │  │  │  __init__.py
+    │  │  │
+    │  │  └─migrations
+    │  │          __init__.py
+    │  │
+    │  └─oncall_user
+    │      │  admin.py
+    │      │  apps.py
+    │      │  models.py
+    │      │  tests.py
+    │      │  views.py
+    │      │  __init__.py
+    │      │
+    │      └─migrations
+    │              __init__.py
+    │
+    └─OncallSysManagement
+            asgi.py
+            settings.py
+            urls.py
+            wsgi.py
+            __init__.py
+```
+然后我们使用pycharm导入创建好的项目，目录结构在pycharm中如下：
+
+由于我们改变了django项目的目录结构，引入了apps这个目录，所以我们还需要对django项目的配置进行一下简单的修改。在和apps目录平级的目录下，有一个项目的主目录，在里面是整个项目的配置。
+在```settings.py```中开头部分配置：
+```python
+from pathlib import Path
+import sys,os
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
+```
+在settings.py中加入我们新建的2个模块
+```python
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'oncall_department',
+    'oncall_user',
+]
+```
+执行命令初始化数据库：
+```powershell
+(venv) D:\gitlab_project\OncallSysManagement>python manage.py migrate
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, sessions
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying sessions.0001_initial... OK
+
+
+```
+
+在pycharm中尝试启动一下django项目
+```powershell
+(venv) D:\gitlab_project\OncallSysManagement>python manage.py runserver 8080
+July 19, 2021 - 22:26:01
+Django version 3.2.5, using settings 'OncallSysManagement.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CTRL-BREAK.
+```
+如果看到上面的打印则说明django项目启动成功了，访问```http://127.0.0.1:8080/```可以看到一个django的web页面。
+至此，我们已经完成了django项目的初始化工作了。
+
+### model层设计
+我们目前打算设计2张表，department和employee，每个部门可以有很多employee，每个employee可以在不同的department(一人多职能)，所以这2张表可以设计成多对多的关系表，我们采用半自动的方式创建department表，employee表，以及他们2个的关系表department_employee,这部分设计在```oncall_department```模块中的```models.py```中
+```python
+from django.db import models
+from django.utils import timezone
+
+# Create your models here.
+
+class Employee(models.Model):
+
+    name = models.CharField(max_length=128, default="demo")
+    create_datetime = models.DateTimeField(null=True, default=timezone.now)
+    create_author = models.CharField(max_length=64, default="demo")
+    update_datetime = models.DateTimeField(auto_now=True, null=True)
+    update_author = models.CharField(max_length=64, default="demo")
+    is_oncall = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.name}'
+
+    def __repr__(self):
+        return f'{self.name}'
+
+class Department(models.Model):
+
+    name = models.CharField(max_length=128, default="demo")
+    create_datetime = models.DateTimeField(null=True, default=timezone.now)
+    create_author = models.CharField(max_length=64, default="demo")
+    update_datetime = models.DateTimeField(auto_now=True, null=True)
+    update_author = models.CharField(max_length=64, default="demo")
+    employee = models.ManyToManyField(Employee, through='Employee_Department')
+
+    def employee_list(self, name=None):
+        final_list = []
+
+        if name == None:
+            for i in self.employee.all():
+                _employee = Employee.objects.filter(name=f'{i}').all()
+                for rr in _employee:
+                    final_list.append(rr.__dict__)
+        else:
+            for i in name:
+                _employee = Employee.objects.filter(name=f'{i}').all()
+                for rr in _employee:
+                    final_list.append(rr.__dict__)
+        return final_list
+
+    def __str__(self):
+        return f'{self.name}'
+
+    def __repr__(self):
+        return f'{self.name}'
+
+
+class Employee_Department(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "employee_department_relationship"
+        unique_together = [
+            ('employee', 'department')
+        ]
+```
+执行命令迁移数据库
+```powershell
+(venv) D:\gitlab_project\OncallSysManagement>python manage.py makemigrations oncall_department
+Migrations for 'oncall_department':
+  apps\oncall_department\migrations\0001_initial.py
+    - Create model Department
+    - Create model Employee
+    - Create model Employee_Department
+    - Add field employee to department
+
+(venv) D:\gitlab_project\OncallSysManagement>python manage.py migrate oncall_department
+Operations to perform:
+  Apply all migrations: oncall_department
+Running migrations:
+  Applying oncall_department.0001_initial... OK
+```
+
+接下来，我们来设计```serializers.py```
+此时需要新的模块作为支持
+```powershell
+(venv) D:\gitlab_project\OncallSysManagement>pip install djangorestframework
+Collecting djangorestframework
+  Using cached djangorestframework-3.12.4-py3-none-any.whl (957 kB)
+Requirement already satisfied: django>=2.2 in d:\gitlab_project\oncallsysmanagement\venv\lib\site-pac
+kages (from djangorestframework) (3.2.5)
+Requirement already satisfied: pytz in d:\gitlab_project\oncallsysmanagement\venv\lib\site-packages (
+from django>=2.2->djangorestframework) (2021.1)
+Requirement already satisfied: sqlparse>=0.2.2 in d:\gitlab_project\oncallsysmanagement\venv\lib\site
+-packages (from django>=2.2->djangorestframework) (0.4.1)
+Requirement already satisfied: asgiref<4,>=3.3.2 in d:\gitlab_project\oncallsysmanagement\venv\lib\si
+te-packages (from django>=2.2->djangorestframework) (3.4.1)
+Requirement already satisfied: typing-extensions in d:\gitlab_project\oncallsysmanagement\venv\lib\si
+te-packages (from asgiref<4,>=3.3.2->django>=2.2->djangorestframework) (3.10.0.0)
+Installing collected packages: djangorestframework
+Successfully installed djangorestframework-3.12.4
+```
+安装好模块之后，我们需要在```settings.py```中进行配置：
+```python
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'notification_be_svc',
+    'notification_healthcheck',
+    'rest_framework',
+    'rest_framework_swagger',
+]
+REST_FRAMEWORK = {
+    'DATETIME_FORMAT': "%Y-%m-%dT%H:%M:%S.%f+08:00",
+    "DEFAULT_VERSION": 'v1',               # 默认的版本
+    "ALLOWED_VERSIONS": ['v1', 'v2'],       # 允许的版本
+    "VERSION_PARAM": 'version',             # GET方式url中参数的名字  ?version=xxx
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.AutoSchema',
+}
+```
+
+
+```serializers.py```内容如下
+```python
+#!/usr/bin/env python
+# encoding: utf-8
+'''
+@author: Paul
+@license: (C) Copyright 2018-2020, Paul
+@contact: yuanjian0375@163.com
+@file: serializers.py.py
+@created_time: 7/19/2021 11:15 PM
+@updated_time: 
+@desc: Just for fun :)
+'''
+
+from rest_framework import serializers
+from oncall_department.models import *
+
+class ReceiverSerializer(serializers.ModelSerializer):
+    # env = ChoiceField(choices=ENV_CHOICES)
+    create_datetime = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)
+    update_datetime = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)
+
+    class Meta:
+        model = Employee
+        fields = "__all__"
+
+
+class TrackEmployeeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
+    name = serializers.CharField(required=False)
+    class Meta:
+        model = Employee
+        fields = ('id', 'name')
+
+
+class ChannelSerializer(serializers.ModelSerializer):
+    create_datetime = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)
+    update_datetime = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)
+    # track fields could be write as this
+    # employee = EmployeeSerializer(many=True, read_only=True)
+    # employee = serializers.SlugRelatedField(
+    #     many=True,
+    #     read_only=False,
+    #     slug_field='name',
+    #     queryset=Employee.objects.all()
+    # )
+    employee = TrackEmployeeSerializer(many=True)
+
+    class Meta:
+        model = Department
+        fields = "__all__"
+
+    def create(self, validated_data):
+
+        employee_data = validated_data.pop('employee')
+
+        department = Department.objects.create(**validated_data)
+        employees = []  # it will contains list of Building model instance
+        for receiver_data in employee_data:
+            employee_id = receiver_data.pop('id', None)
+            employee = Employee.objects.get(id=employee_id)
+            employees.append(employee)
+        department.employee.add(*employees)
+        return department
+
+    def update(self, instance, validated_data):
+
+        employee_data = validated_data.pop('employee')
+
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        employees = []  # it will contains list of Building model instance
+        for employee_data in employee_data:
+            employee_id = employee_data.pop('id', None)
+            employee = Employee.objects.get(id=employee_id)
+            employees.append(employee)
+        instance.receivers.set(employees)
+        return instance
+```
+
+下面是```views.py```的样例，此处我们使用viewset
+```python
+
+# Create your views here.
+from oncall_department.serializers import *
+from rest_framework import viewsets
+
+class EmployeeViewSet(viewsets.ModelViewSet):
+    queryset = Employee.objects.order_by('-id')
+    serializer_class = EmployeeSerializer
+
+class DepartmentViewSet(viewsets.ModelViewSet):
+    queryset = Department.objects.order_by('-id')
+    serializer_class = DepartmentSerializer
+```
+
+最后是配置```urls.py```
+在主配置目录下有一个urls.py文件，可先配置这个
+```python
+
+```
+
+
